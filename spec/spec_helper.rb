@@ -23,3 +23,7 @@ def setup_db
     config.db_url = 'postgresql://postgres:@0.0.0.0:5432'
   end
 end
+
+def clear_db
+  VisitCounter::Visit.dataset.delete
+end
