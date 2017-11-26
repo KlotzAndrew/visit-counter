@@ -2,6 +2,9 @@
 
 require 'bundler/setup'
 require 'visit_counter'
+require 'pry'
+
+require_relative 'integration/test_server'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
