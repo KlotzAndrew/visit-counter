@@ -1,4 +1,6 @@
-require "visit_counter/version"
+# frozen_string_literal: true
+
+require 'visit_counter/version'
 
 module VisitCounter
   # Your code goes here...
