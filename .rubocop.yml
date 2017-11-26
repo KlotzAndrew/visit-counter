@@ -17,3 +17,6 @@ Style/Documentation:
 
 Metrics/LineLength:
   Max: 120
+
+Style/RegexpLiteral:
+  Enabled: false

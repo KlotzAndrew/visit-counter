@@ -36,7 +36,12 @@ RSpec.describe 'integration' do
 
     results_response = fetch_response(results_path, username, password)
     body = JSON.parse(results_response.body)
-    expect(body).to eq([{ 'url' => '/puppies', 'date' => Time.now.beginning_of_day.to_s, 'count' => 1 }])
+    expect(body).to eq(
+      [
+        { 'url' => '/puppies', 'date' => Time.now.beginning_of_day.to_s, 'count' => 1 },
+        { 'url' => '^/pup.*', 'date' => Time.now.beginning_of_day.to_s, 'count' => 1 }
+      ]
+    )
   end
 
   it 'auth required for results' do
