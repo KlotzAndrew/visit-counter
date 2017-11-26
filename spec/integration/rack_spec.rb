@@ -5,7 +5,11 @@ require 'spec_helper'
 require 'net/http'
 
 RSpec.describe 'integration' do
-  before(:context) { TestServer.start }
+  before(:context) do
+    setup_db
+    TestServer.start
+  end
+
   after(:context) { TestServer.stop }
 
   it 'runs a server' do

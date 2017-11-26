@@ -17,3 +17,9 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+def setup_db
+  VisitCounter.configure do |config|
+    config.db_url = 'postgresql://postgres:@0.0.0.0:5432'
+  end
+end

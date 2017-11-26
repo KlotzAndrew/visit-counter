@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'uri'
+require 'visit_counter/db'
+
+db_url = ARGV[0]
+
+raise "provide a valid database url: #{db_url}" unless db_url && db_url =~ URI::DEFAULT_PARSER.make_regexp
+
+VisitCounter::DB.run_migrations(db_url)
+
+puts "migrated successfully: #{db_url}"

@@ -12,6 +12,8 @@ Add this line to your application's Gemfile:
 gem 'visit_counter'
 ```
 
+`db_migrate postgresql://postgres:@0.0.0.0:5432`
+
 And then execute:
 
     $ bundle
