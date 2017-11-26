@@ -16,6 +16,7 @@ RSpec.describe 'integration' do
   after { clear_db }
 
   let(:results_path) { VisitCounter::Middleware::RESULTS_PATH }
+  let(:results_path_csv) { VisitCounter::Middleware::RESULTS_PATH_CSV }
   let(:username) { VisitCounter::Middleware::USERNAME }
   let(:password) { VisitCounter::Middleware::PASSWORD }
 
@@ -42,9 +43,24 @@ RSpec.describe 'integration' do
         { 'url' => '^/pup.*', 'date' => Time.now.beginning_of_day.to_s, 'count' => 1 }
       ]
     )
+
+    results_response_csv = fetch_response(results_path_csv, username, password)
+    body = CSV.parse(results_response_csv.body)
+    expect(body).to eq(
+      [
+        ['url', 'date', 'count'],
+        ['/puppies', '2017-11-26 00:00:00 -0500', '1'],
+        ['^/pup.*', '2017-11-26 00:00:00 -0500', '1']
+      ]
+    )
   end
 
   it 'auth required for results' do
+    results_response = fetch_response(results_path, 'bad user', 'bad pass')
+    expect(results_response.code).to eq('401')
+  end
+
+  it 'auth required for results csv' do
     results_response = fetch_response(results_path, 'bad user', 'bad pass')
     expect(results_response.code).to eq('401')
   end

@@ -2,9 +2,10 @@
 
 module VisitCounter
   class Middleware
-    RESULTS_PATH = '/visit_counter_results'
-    USERNAME     = 'abc'
-    PASSWORD     = 'def'
+    RESULTS_PATH     = '/visit_counter_results'
+    RESULTS_PATH_CSV = '/visit_counter_results/csv'
+    USERNAME         = 'abc'
+    PASSWORD         = 'def'
 
     def initialize(app)
       @app = app
@@ -13,7 +14,8 @@ module VisitCounter
     def call(env)
       request = Rack::Request.new(env)
 
-      return results_page(env) if request.path_info == RESULTS_PATH
+      return authorize(results_response, env) if request.path_info == RESULTS_PATH
+      return authorize(results_response_csv, env) if request.path_info == RESULTS_PATH_CSV
 
       record_visit(request)
 
@@ -22,16 +24,22 @@ module VisitCounter
 
     private
 
-    def results_page(env)
-      auth(results_response).call(env)
-    end
-
     def results_response
       proc {
         Rack::Response.new.tap do |resp|
-          resp['Content-Type'] = 'application/json; charset=UTF-8'
+          resp['Content-Type'] = 'application/json'
           resp.status          = 200
           resp.body            = [Visit.visit_report.to_json]
+        end
+      }
+    end
+
+    def results_response_csv
+      proc {
+        Rack::Response.new.tap do |resp|
+          resp['Content-Type'] = 'text/csv; charset=UTF-8'
+          resp.status          = 200
+          resp.body            = [Visit.visit_report_csv]
         end
       }
     end
@@ -49,10 +57,12 @@ module VisitCounter
       Visit.new(url: VisitCounter.configuration.regex_url.source).save
     end
 
-    def auth(response)
-      Rack::Auth::Basic.new(response) do |username, password|
+    def authorize(page, env)
+      auth = Rack::Auth::Basic.new(page) do |username, password|
         username == USERNAME && password == PASSWORD
       end
+
+      auth.call(env)
     end
   end
 end
