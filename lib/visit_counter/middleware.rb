@@ -3,6 +3,8 @@
 module VisitCounter
   class Middleware
     RESULTS_PATH = '/visit_counter_results'
+    USERNAME     = 'abc'
+    PASSWORD     = 'def'
 
     def initialize(app)
       @app = app
@@ -11,7 +13,7 @@ module VisitCounter
     def call(env)
       request = Rack::Request.new(env)
 
-      return results_page if request.path_info == RESULTS_PATH
+      return results_page(env) if request.path_info == RESULTS_PATH
 
       record_visit(request)
 
@@ -20,12 +22,18 @@ module VisitCounter
 
     private
 
-    def results_page
-      Rack::Response.new.tap do |resp|
-        resp['Content-Type'] = 'application/json; charset=UTF-8'
-        resp.status          = 200
-        resp.body            = [Visit.visit_report.to_json]
-      end
+    def results_page(env)
+      auth(results_response).call(env)
+    end
+
+    def results_response
+      proc {
+        Rack::Response.new.tap do |resp|
+          resp['Content-Type'] = 'application/json; charset=UTF-8'
+          resp.status          = 200
+          resp.body            = [Visit.visit_report.to_json]
+        end
+      }
     end
 
     def record_visit(request)
@@ -34,6 +42,12 @@ module VisitCounter
 
     def create_exact_visit
       Visit.new(url: VisitCounter.configuration.exact_url).save
+    end
+
+    def auth(response)
+      Rack::Auth::Basic.new(response) do |username, password|
+        username == USERNAME && password == PASSWORD
+      end
     end
   end
 end
