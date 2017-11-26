@@ -61,15 +61,26 @@ module VisitCounter
     def configure(request)
       proc {
         body = request.body.read
-        json = JSON.parse(body)
-        json.each { |k, v| VisitCounter.configuration.public_send(k, v) }
+        data = JSON.parse(body)
+        update_configuration(data)
 
         Rack::Response.new.tap do |resp|
           resp['Content-Type'] = 'application/json'
           resp.status          = 200
-          resp.body            = []
+          resp.body            = [VisitCounter.serialize_configuration.to_json]
         end
       }
+    end
+
+    def update_configuration(data)
+      data.each do |k, v|
+        if k == 'regex_url=' && v.class != Regexp
+          regex = Regexp.new(v)
+          VisitCounter.configuration.public_send(k, regex)
+        else
+          VisitCounter.configuration.public_send(k, v)
+        end
+      end
     end
 
     def record_visit(request)

@@ -16,6 +16,14 @@ module VisitCounter
     start!
   end
 
+  def serialize_configuration
+    {
+      'db_url'    => configuration.db_url,
+      'exact_url' => configuration.exact_url,
+      'regex_url' => configuration.regex_url.source
+    }
+  end
+
   def start!
     require 'visit_counter/db'
     require 'visit_counter/repositories/visit'

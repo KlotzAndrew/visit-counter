@@ -20,7 +20,9 @@ RSpec.describe 'integration' do
   let(:configure_path) { VisitCounter::Middleware::CONFIGURE_PATH }
   let(:username) { VisitCounter::Middleware::USERNAME }
   let(:password) { VisitCounter::Middleware::PASSWORD }
-  let(:config_data) { { 'exact_url=' => '/dogs_and_cats' } }
+  let(:config_data) do
+    { 'exact_url=' => '/dogs_and_cats', 'regex_url=' => '/dogs_and_cats.*' }
+  end
 
   it 'runs a server' do
     response = fetch_response('/')
@@ -75,8 +77,10 @@ RSpec.describe 'integration' do
   it 'updates config' do
     results_response = post_data(configure_path, config_data, username, password)
     expect(results_response.code).to eq('200')
+    body = JSON.parse(results_response.body)
 
-    expect(VisitCounter.configuration.exact_url).to eq(config_data['exact_url'])
+    expect(body['exact_url']).to eq(config_data['exact_url='])
+    expect(body['regex_url']).to eq(config_data['regex_url='])
   end
 
   def fetch_response(path, username = nil, password = nil)
