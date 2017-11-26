@@ -1,37 +1,52 @@
 # VisitCounter
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/visit_counter`. To experiment with that code, run `bin/console` for an interactive prompt.
+Automatically track and report visits to your apps urls. VisitCounter is
+middleware, so it will work with any rack-base web server
 
-TODO: Delete this and the text above, and describe your gem
+VisitCounter tracks visits to exact urls, and urls matched by regex
 
 ## Installation
 
-Add this line to your application's Gemfile:
+`gem 'visit_counter'`
 
-```ruby
-gem 'visit_counter'
+```shell
+# run setup migration
+db_migrate postgresql://postgres:@0.0.0.0:5432
 ```
 
-`db_migrate postgresql://postgres:@0.0.0.0:5432`
+```ruby
+# config/initializers/visit_counter.rb
+VisitCounter.configure do |config|
+  config.db_url    = 'postgresql://postgres:@0.0.0.0:5432'
+  config.exact_url = '/puppies'
+  config.regex_url = /^\/pup.*/
+end
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install visit_counter
+# config.ru
+use VisitCounter::Middleware
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+```shell
+# request to url gets tracked as a visit
+curl -X GET http://0.0.0.0:9292/puppies
 
-## Development
+# view visit reports in json
+curl -X GET \
+  http://0.0.0.0:9292/visit_counter_results/csv \
+  -H 'authorization: Basic YWJjOmRlZg==' \
+  -d '{ "exact_url=": "/good" }'
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+# view visit reports in csv
+curl -X GET \
+  http://0.0.0.0:9292/visit_counter_results/csv \
+  -H 'authorization: Basic YWJjOmRlZg==' \
+  -d '{ "exact_url=": "/good" }'
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/visit_counter.
+# runtime configuration
+curl -X POST \
+  http://0.0.0.0:9292/visit_counter_results/configure \
+  -H 'authorization: Basic YWJjOmRlZg==' \
+  -d '{ "exact_url=": "/good" }'
+```
