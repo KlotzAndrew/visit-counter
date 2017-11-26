@@ -4,6 +4,7 @@ module VisitCounter
   class Middleware
     RESULTS_PATH     = '/visit_counter_results'
     RESULTS_PATH_CSV = '/visit_counter_results/csv'
+    CONFIGURE_PATH   = '/visit_counter_results/configure'
     USERNAME         = 'abc'
     PASSWORD         = 'def'
 
@@ -14,8 +15,9 @@ module VisitCounter
     def call(env)
       request = Rack::Request.new(env)
 
-      return authorize(results_response, env) if request.path_info == RESULTS_PATH
-      return authorize(results_response_csv, env) if request.path_info == RESULTS_PATH_CSV
+      return authorize(results_response, env) if results?(request)
+      return authorize(results_response_csv, env) if results_csv?(request)
+      return authorize(configure(request), env) if configure?(request)
 
       record_visit(request)
 
@@ -23,6 +25,18 @@ module VisitCounter
     end
 
     private
+
+    def results?(request)
+      request.path_info == RESULTS_PATH
+    end
+
+    def results_csv?(request)
+      request.path_info == RESULTS_PATH_CSV
+    end
+
+    def configure?(request)
+      request.path_info == CONFIGURE_PATH && request.post?
+    end
 
     def results_response
       proc {
@@ -40,6 +54,20 @@ module VisitCounter
           resp['Content-Type'] = 'text/csv; charset=UTF-8'
           resp.status          = 200
           resp.body            = [Visit.visit_report_csv]
+        end
+      }
+    end
+
+    def configure(request)
+      proc {
+        body = request.body.read
+        json = JSON.parse(body)
+        json.each { |k, v| VisitCounter.configuration.public_send(k, v) }
+
+        Rack::Response.new.tap do |resp|
+          resp['Content-Type'] = 'application/json'
+          resp.status          = 200
+          resp.body            = []
         end
       }
     end

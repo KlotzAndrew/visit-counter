@@ -17,8 +17,10 @@ RSpec.describe 'integration' do
 
   let(:results_path) { VisitCounter::Middleware::RESULTS_PATH }
   let(:results_path_csv) { VisitCounter::Middleware::RESULTS_PATH_CSV }
+  let(:configure_path) { VisitCounter::Middleware::CONFIGURE_PATH }
   let(:username) { VisitCounter::Middleware::USERNAME }
   let(:password) { VisitCounter::Middleware::PASSWORD }
+  let(:config_data) { { 'exact_url=' => '/dogs_and_cats' } }
 
   it 'runs a server' do
     response = fetch_response('/')
@@ -65,10 +67,31 @@ RSpec.describe 'integration' do
     expect(results_response.code).to eq('401')
   end
 
+  it 'auth required for configure' do
+    results_response = post_data(configure_path, config_data, 'bad user', 'bad pass')
+    expect(results_response.code).to eq('401')
+  end
+
+  it 'updates config' do
+    results_response = post_data(configure_path, config_data, username, password)
+    expect(results_response.code).to eq('200')
+
+    expect(VisitCounter.configuration.exact_url).to eq(config_data['exact_url'])
+  end
+
   def fetch_response(path, username = nil, password = nil)
-    uri = URI.parse("http://localhost:#{TestServer::PORT}#{path}")
+    uri     = URI.parse("http://localhost:#{TestServer::PORT}#{path}")
     request = Net::HTTP::Get.new(uri.request_uri)
     request.basic_auth(username, password) if username && password
+
+    Net::HTTP.new(uri.host, uri.port).request(request)
+  end
+
+  def post_data(path, data = {}, username = nil, password = nil)
+    uri     = URI.parse("http://localhost:#{TestServer::PORT}#{path}")
+    request = Net::HTTP::Post.new(uri.request_uri)
+    request.basic_auth(username, password) if username && password
+    request.body = data.to_json
 
     Net::HTTP.new(uri.host, uri.port).request(request)
   end
