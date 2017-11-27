@@ -34,15 +34,13 @@ curl -X GET http://0.0.0.0:9292/puppies
 
 # view visit reports in json
 curl -X GET \
-  http://0.0.0.0:9292/visit_counter_results/csv \
-  -H 'authorization: Basic YWJjOmRlZg==' \
-  -d '{ "exact_url=": "/good" }'
+  http://0.0.0.0:9292/visit_counter_results \
+  -H 'authorization: Basic YWJjOmRlZg=='
 
 # view visit reports in csv
 curl -X GET \
   http://0.0.0.0:9292/visit_counter_results/csv \
-  -H 'authorization: Basic YWJjOmRlZg==' \
-  -d '{ "exact_url=": "/good" }'
+  -H 'authorization: Basic YWJjOmRlZg=='
 
 # runtime configuration
 curl -X POST \
