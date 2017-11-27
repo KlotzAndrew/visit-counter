@@ -48,3 +48,22 @@ curl -X POST \
   -H 'authorization: Basic YWJjOmRlZg==' \
   -d '{ "exact_url=": "/good" }'
 ```
+
+There is a demo server in `spec/integration` if you want to try it out
+
+```shell
+cd spec/integration
+rackup
+```
+
+## Development
+
+```shell
+bin/db_migrate postgresql://postgres:@0.0.0.0:5432
+```
+
+```ruby
+bundle install
+bundle exec rubocop
+bundle exec rspec
+```
