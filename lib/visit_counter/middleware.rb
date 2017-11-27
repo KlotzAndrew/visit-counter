@@ -89,11 +89,13 @@ module VisitCounter
     end
 
     def create_exact_visit
-      Visit.new(url: VisitCounter.configuration.exact_url).save
+      # Visit.new(url: VisitCounter.configuration.exact_url).save
+      Outbox.enqueue(VisitCounter.configuration.exact_url)
     end
 
     def create_regex_visit
-      Visit.new(url: VisitCounter.configuration.regex_url.source).save
+      # Visit.new(url: VisitCounter.configuration.regex_url.source).save
+      Outbox.enqueue(VisitCounter.configuration.regex_url.source)
     end
 
     def authorize(page, env)

@@ -3,6 +3,7 @@
 require 'visit_counter/version'
 require 'visit_counter/middleware'
 require 'visit_counter/configuration'
+require 'visit_counter/outbox'
 
 module VisitCounter
   module_function
@@ -27,5 +28,6 @@ module VisitCounter
   def start!
     require 'visit_counter/db'
     require 'visit_counter/repositories/visit'
+    Outbox.start!
   end
 end

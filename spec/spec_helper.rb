@@ -27,3 +27,7 @@ end
 def clear_db
   VisitCounter::Visit.dataset.delete
 end
+
+def integration_wait!
+  sleep VisitCounter::Outbox::GIL_SLEEP * 2
+end

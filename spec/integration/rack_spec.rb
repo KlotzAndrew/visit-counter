@@ -38,6 +38,7 @@ RSpec.describe 'integration' do
 
     results_response = fetch_response('/puppies')
     expect(results_response.body).to eq('everything is awesome!')
+    integration_wait!
 
     results_response = fetch_response(results_path, username, password)
     body = JSON.parse(results_response.body)
