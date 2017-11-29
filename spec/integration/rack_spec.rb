@@ -51,11 +51,17 @@ RSpec.describe 'integration' do
 
     results_response_csv = fetch_response(results_path_csv, username, password)
     body = CSV.parse(results_response_csv.body)
+
+    # => quickly align ruby/pg time zone format
+    time = Time.now.at_beginning_of_day.to_s
+    time = time[0..time.length - 3]
+    time = time.sub('00:00:00 ', '00:00:00')
+
     expect(body).to eq(
       [
         ['url', 'date', 'count'],
-        ['/puppies', '2017-11-26 00:00:00 -0500', '1'],
-        ['^/pup.*', '2017-11-26 00:00:00 -0500', '1']
+        ['/puppies', time, '1'],
+        ['^/pup.*', time, '1']
       ]
     )
   end

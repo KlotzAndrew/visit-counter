@@ -11,9 +11,21 @@ module VisitCounter
       validates_presence [:url]
     end
 
-    # rubocop:disable Metrics/MethodLength
     def self.visit_report
+      DB.connection[report_sql].to_a
+    end
+
+    def self.visit_report_csv
       query = <<~SQL
+        COPY (#{report_sql}) to STDOUT (format CSV)
+      SQL
+
+      csv = ['url', 'date', 'count'].to_csv
+      csv << copy_pg_data(query)
+    end
+
+    def self.report_sql
+      <<~SQL
         SELECT url, date, count
         FROM   (SELECT Date_trunc('day', created_at::DATE) AS date,
                        Count(*),
@@ -30,19 +42,38 @@ module VisitCounter
                   url ASC,
                   count
       SQL
-
-      DB.connection[query].to_a
     end
 
-    # NOTE: sequel postgres COPY command is raising null pointer error???
-    def self.visit_report_csv
-      json_report = visit_report
-      return '' if json_report.empty?
-
-      CSV.generate do |csv|
-        csv << json_report[0].keys
-
-        json_report.each { |row| csv << row.values }
+    # NOTE: PR this when I get a chance
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Performance/UnfreezeString
+    # rubocop:disable Lint/RescueWithoutErrorClass
+    # rubocop:disable Style/StringLiterals
+    # rubocop:disable Lint/AssignmentInCondition
+    def self.copy_pg_data(query)
+      DB.connection.synchronize do |conn|
+        conn.execute(query) do
+          begin
+            if block_given?
+              while buf = conn.get_copy_data
+                yield buf
+              end
+              nil
+            else
+              b = String.new
+              b << buf while buf = conn.get_copy_data
+              b
+            end
+          rescue => e
+            puts e
+          ensure
+            if buf && !e
+              raise "disconnecting as a partial COPY may leave the connection in an unusable state"
+            end
+          end
+        end
       end
     end
   end

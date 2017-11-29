@@ -56,8 +56,7 @@ module VisitCounter
 
       visit_configs.each do |visit_config|
         visit_config[:count].times do
-          Visit.new.tap do |_visit|
-            visit = Visit.new(url: visit_config[:url]).save
+          Visit.new(url: visit_config[:url]).save.tap do |visit|
             visit.created_at = Time.parse(visit_config[:date])
             visit.save
           end
@@ -70,13 +69,13 @@ module VisitCounter
       expect(parsed_report).to eq(
         [
           ['url', 'date', 'count'],
-          ['/', '0017-11-26 00:00:00 -0500', '2'],
-          ['/dogs', '0017-11-26 00:00:00 -0500', '1'],
-          ['/', '0017-11-25 00:00:00 -0500', '3'],
-          ['/cats', '0017-11-25 00:00:00 -0500', '2'],
-          ['/', '0017-11-24 00:00:00 -0500', '4'],
-          ['/cats', '0017-11-24 00:00:00 -0500', '1'],
-          ['/dogs', '0017-11-24 00:00:00 -0500', '3']
+          ['/', '0017-11-26 00:00:00-05:17:32', '2'],
+          ['/dogs', '0017-11-26 00:00:00-05:17:32', '1'],
+          ['/', '0017-11-25 00:00:00-05:17:32', '3'],
+          ['/cats', '0017-11-25 00:00:00-05:17:32', '2'],
+          ['/', '0017-11-24 00:00:00-05:17:32', '4'],
+          ['/cats', '0017-11-24 00:00:00-05:17:32', '1'],
+          ['/dogs', '0017-11-24 00:00:00-05:17:32', '3']
         ]
       )
     end
